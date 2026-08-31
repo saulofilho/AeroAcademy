@@ -24,7 +24,7 @@ export const CockpitOverlay: React.FC<CockpitOverlayProps> = ({
   onGearToggle,
   onBrakesToggle,
 }) => {
-  const t = translations[lang].simulator;
+  const t = (translations[lang] || translations.pt).simulator;
 
   // Pitch ladder angle calculation
   const pitchOffsetPx = -telemetry.pitch * 3.5;

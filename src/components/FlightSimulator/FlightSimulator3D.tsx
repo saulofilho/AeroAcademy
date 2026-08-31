@@ -790,7 +790,7 @@ export const FlightSimulator3D: React.FC<FlightSimulator3DProps> = ({
     setIsDebriefModalOpen(true);
   }, [telemetry, currentAircraft, currentAirport, currentWeather, activeManeuver, lang, onSaveFlightLog]);
 
-  const t = translations[lang].simulator;
+  const t = (translations[lang] || translations.pt).simulator;
 
   return (
     <div id="flight-simulator-container" className="relative w-full h-[78vh] sm:h-[82vh] bg-[#000000] rounded-2xl overflow-hidden border border-[#1E293B] shadow-2xl flex flex-col">

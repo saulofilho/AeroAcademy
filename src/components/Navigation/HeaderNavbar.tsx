@@ -41,7 +41,7 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
 
-  const t = translations[lang].nav;
+  const t = (translations[lang] || translations.pt).tabs;
   const unreadNotifsCount = notifications.filter(n => !n.isRead).length;
 
   const navItems = [
