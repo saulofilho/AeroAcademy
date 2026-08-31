@@ -360,3 +360,71 @@ export interface PushNotificationItem {
   type: 'challenge' | 'weather' | 'certificate' | 'community' | 'training' | 'flight_logged';
   actionTab?: string;
 }
+
+export interface FlightPathPoint {
+  id: string;
+  posX: number;
+  posY: number;
+  posZ: number;
+  lat: number;
+  lon: number;
+  altitudeFt: number;
+  groundSpeedKts: number;
+  headingDeg: number;
+  verticalSpeedFpm: number;
+  timestamp: number;
+}
+
+export interface FlightPathMapConfig {
+  trackUp: boolean;
+  showTerrainShading: boolean;
+  showWaypoints: boolean;
+  showIlsApproach: boolean;
+  showRangeRings: boolean;
+  showAltitudeHeatmap: boolean;
+  showWeatherRadar: boolean;
+  zoomLevel: number;
+}
+
+export type FlightPhase =
+  | 'preflight'
+  | 'taxi'
+  | 'lineup_and_wait'
+  | 'takeoff_roll'
+  | 'initial_climb'
+  | 'en_route_cruise'
+  | 'descent_approach'
+  | 'final_approach'
+  | 'short_final'
+  | 'touchdown_rollout'
+  | 'go_around'
+  | 'emergency';
+
+export interface AtcTransmission {
+  id: string;
+  sender: 'TOWER' | 'GROUND' | 'APPROACH' | 'CENTER' | 'ATIS' | 'PILOT' | 'RADAR';
+  frequency: string;
+  facilityName: string;
+  text: string;
+  phoneticText?: string;
+  timestamp: number;
+  phase: FlightPhase;
+  isReadback?: boolean;
+  requiresAck?: boolean;
+  acknowledged?: boolean;
+}
+
+export interface AtcRadioState {
+  activeComFreq: string;
+  standbyComFreq: string;
+  facility: 'TWR' | 'GND' | 'APP' | 'CTR' | 'ATIS';
+  volume: number;
+  isMuted: boolean;
+  autoSpeak: boolean;
+  isTransmitting: boolean;
+  isReceiving: boolean;
+  currentPhase: FlightPhase;
+  clearedTakeoff: boolean;
+  clearedLand: boolean;
+  lastWaypoint?: string;
+}

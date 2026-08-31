@@ -12,6 +12,8 @@ interface CockpitOverlayProps {
   onFlapsToggle: () => void;
   onGearToggle: () => void;
   onBrakesToggle: () => void;
+  onToggleAtc?: () => void;
+  isAtcOpen?: boolean;
 }
 
 export const CockpitOverlay: React.FC<CockpitOverlayProps> = ({
@@ -23,6 +25,8 @@ export const CockpitOverlay: React.FC<CockpitOverlayProps> = ({
   onFlapsToggle,
   onGearToggle,
   onBrakesToggle,
+  onToggleAtc,
+  isAtcOpen,
 }) => {
   const t = (translations[lang] || translations.pt).simulator;
 
@@ -45,7 +49,24 @@ export const CockpitOverlay: React.FC<CockpitOverlayProps> = ({
           </div>
           <div className="hidden sm:flex items-center gap-2 text-[#64748B] border-l border-[#334155] pl-3">
             <span>XPDR: <strong className="text-[#FCD34D]">1200</strong></span>
-            <span>COM1: <strong className="text-[#22C55E]">118.40</strong></span>
+            {onToggleAtc ? (
+              <button
+                id="btn-overlay-com1-toggle"
+                onClick={onToggleAtc}
+                className={`flex items-center gap-1 px-1.5 py-0.5 rounded border cursor-pointer transition-colors ${
+                  isAtcOpen
+                    ? 'bg-[#1E293B] border-[#38BDF8] text-[#38BDF8]'
+                    : 'bg-[#0A0C10] border-[#334155] text-[#94A3B8] hover:text-white'
+                }`}
+                title="Open ATC Radio Comms Panel [C]"
+              >
+                <Radio className="h-3 w-3 text-[#22C55E]" />
+                <span>COM1:</span>
+                <strong className="text-[#22C55E]">118.40</strong>
+              </button>
+            ) : (
+              <span>COM1: <strong className="text-[#22C55E]">118.40</strong></span>
+            )}
             <span>NAV1: <strong className="text-[#38BDF8]">{telemetry.nav1Freq.toFixed(2)}</strong></span>
           </div>
         </div>

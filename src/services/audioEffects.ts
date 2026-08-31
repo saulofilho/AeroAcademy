@@ -156,7 +156,149 @@ export class AviationAudioEngine {
     } catch (e) {}
   }
 
+  public playRadioMicClick(type: 'open' | 'close' = 'open') {
+    this.initContext();
+    if (!this.ctx || this.isMuted) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      // White noise burst for radio squelch
+      const bufferSize = Math.floor(this.ctx.sampleRate * (type === 'open' ? 0.035 : 0.025));
+      const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+      }
+
+      const noiseSource = this.ctx.createBufferSource();
+      noiseSource.buffer = noiseBuffer;
+
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(type === 'open' ? 2400 : 1800, now);
+      filter.Q.setValueAtTime(3.0, now);
+
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + (type === 'open' ? 0.035 : 0.025));
+
+      noiseSource.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      noiseSource.start();
+
+      // Subtle PTT chirp tone
+      const osc = this.ctx.createOscillator();
+      const oscGain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(type === 'open' ? 1750 : 850, now);
+      osc.frequency.exponentialRampToValueAtTime(type === 'open' ? 650 : 400, now + 0.03);
+
+      oscGain.gain.setValueAtTime(0.1, now);
+      oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+
+      osc.connect(oscGain);
+      oscGain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(now + 0.035);
+    } catch (e) {
+      // Audio fallback
+    }
+  }
+
+  public playRogerBeep() {
+    this.initContext();
+    if (!this.ctx || this.isMuted) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(2525, now); // Classic VHF Quindar / Roger tone
+
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start();
+      osc.stop(now + 0.1);
+    } catch (e) {}
+  }
+
+  public speakAtcTransmission(
+    phrase: string,
+    lang = 'pt',
+    role: 'ATC' | 'PILOT' = 'ATC',
+    onStart?: () => void,
+    onEnd?: () => void
+  ) {
+    if (!('speechSynthesis' in window) || this.isMuted) {
+      if (onStart) onStart();
+      setTimeout(() => {
+        if (onEnd) onEnd();
+      }, 1500);
+      return;
+    }
+
+    try {
+      window.speechSynthesis.cancel();
+
+      // Play mic-click squelch open
+      this.playRadioMicClick('open');
+
+      const utter = new SpeechSynthesisUtterance(phrase);
+      // Radio cockpit sound: slightly faster, distinct pitch for ATC vs Pilot
+      utter.rate = role === 'ATC' ? 1.05 : 1.0;
+      utter.pitch = role === 'ATC' ? 0.95 : 1.1;
+      utter.volume = 0.95;
+
+      const voices = window.speechSynthesis.getVoices();
+      const targetLang =
+        lang === 'pt'
+          ? 'pt-BR'
+          : lang === 'es'
+          ? 'es-ES'
+          : lang === 'fr'
+          ? 'fr-FR'
+          : lang === 'de'
+          ? 'de-DE'
+          : 'en-US';
+
+      // Pick matching voice
+      const matched = voices.find((v) => v.lang.startsWith(targetLang.substring(0, 2)));
+      if (matched) {
+        utter.voice = matched;
+      }
+
+      utter.onstart = () => {
+        if (onStart) onStart();
+      };
+
+      utter.onend = () => {
+        this.playRadioMicClick('close');
+        if (role === 'ATC') {
+          setTimeout(() => this.playRogerBeep(), 80);
+        }
+        if (onEnd) onEnd();
+      };
+
+      utter.onerror = () => {
+        if (onEnd) onEnd();
+      };
+
+      window.speechSynthesis.speak(utter);
+    } catch (e) {
+      if (onEnd) onEnd();
+    }
+  }
+
   public speakCallout(phrase: string, lang = 'pt') {
+
     const now = Date.now();
     // Throttle duplicate callouts to prevent audio stutter
     if (this.lastSpokenCallout === phrase && now - this.lastSpokenTime < 3500) {

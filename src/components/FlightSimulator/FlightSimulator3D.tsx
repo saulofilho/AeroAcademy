@@ -10,12 +10,15 @@ import {
   HardwareInputConfig,
   LogbookEntry,
   CockpitViewMode,
+  FlightPathPoint,
 } from '../../types';
 import { FlightPhysicsEngine } from '../../services/flightPhysics';
 import { audioEngine } from '../../services/audioEffects';
 import { CockpitOverlay } from './CockpitOverlay';
 import { HardwareCalibrationModal } from './HardwareCalibrationModal';
 import { PostFlightDebriefModal } from './PostFlightDebriefModal';
+import { FlightPathVisualizer } from './FlightPathVisualizer';
+import { AtcRadioPanel } from './AtcRadioPanel';
 import { translations } from '../../i18n/translations';
 import {
   Play,
@@ -26,12 +29,14 @@ import {
   Sliders,
   Flag,
   Radio,
+  RadioTower,
   Volume2,
   VolumeX,
   Sparkles,
   Award,
   ChevronRight,
   Maximize2,
+  Map as MapIcon,
 } from 'lucide-react';
 
 interface FlightSimulator3DProps {
@@ -68,6 +73,13 @@ export const FlightSimulator3D: React.FC<FlightSimulator3DProps> = ({
   const [lastCompletedEntry, setLastCompletedEntry] = useState<LogbookEntry | null>(null);
   const [instructorFeedback, setInstructorFeedback] = useState<string>('Motor em marcha lenta, pronto para decolagem na pista.');
   const [instructorFeedbackType, setInstructorFeedbackType] = useState<'info' | 'good' | 'warning'>('info');
+
+  // Flight Path Visualizer State
+  const [trajectory, setTrajectory] = useState<FlightPathPoint[]>([]);
+  const [isMapOpen, setIsMapOpen] = useState<boolean>(true);
+  const [isMapExpanded, setIsMapExpanded] = useState<boolean>(false);
+  const [isAtcOpen, setIsAtcOpen] = useState<boolean>(true);
+  const lastSampleTimeRef = useRef<number>(0);
 
   // Flight session metrics
   const flightStartTimeRef = useRef<number>(Date.now());
@@ -444,12 +456,15 @@ export const FlightSimulator3D: React.FC<FlightSimulator3DProps> = ({
           physicsRef.current.state.parkingBrakes = !physicsRef.current.state.parkingBrakes;
           audioEngine.playClickSwitch();
         }
-      } else if (e.code === 'KeyC') {
-        // Cycle Camera
-        setViewMode((prev) => (prev === 'cockpit_hud' ? 'chaseView' : prev === 'chaseView' ? 'vr_stereoscopic' : 'cockpit_hud'));
+      } else if (e.code === 'KeyC' || e.code === 'KeyT') {
+        // Toggle ATC Radio Comms
+        setIsAtcOpen((prev) => !prev);
       } else if (e.code === 'KeyV') {
-        // Toggle VR mode
-        setViewMode((prev) => (prev === 'vr_stereoscopic' ? 'cockpit_hud' : 'vr_stereoscopic'));
+        // Cycle Camera / VR mode
+        setViewMode((prev) => (prev === 'cockpit_hud' ? 'chaseView' : prev === 'chaseView' ? 'vr_stereoscopic' : 'cockpit_hud'));
+      } else if (e.code === 'KeyM') {
+        // Toggle Flight Path Map
+        setIsMapOpen((prev) => !prev);
       } else if (e.code === 'KeyR') {
         // Reset flight
         handleRestartFlight();
@@ -538,6 +553,32 @@ export const FlightSimulator3D: React.FC<FlightSimulator3DProps> = ({
         // Update telemetry state
         const state = physics.state;
         setTelemetry({ ...state });
+
+        // Sample flight trajectory point for real-time moving map
+        const sampleNow = Date.now();
+        if (sampleNow - lastSampleTimeRef.current > 400) {
+          lastSampleTimeRef.current = sampleNow;
+          const latM = -state.posZ;
+          const lonM = state.posX;
+          const latDelta = latM / 111139;
+          const lonDelta = lonM / (111139 * Math.cos((currentAirport.coordinates.lat * Math.PI) / 180));
+
+          const pt: FlightPathPoint = {
+            id: `pt_${sampleNow}`,
+            posX: state.posX,
+            posY: state.posY,
+            posZ: state.posZ,
+            lat: currentAirport.coordinates.lat + latDelta,
+            lon: currentAirport.coordinates.lon + lonDelta,
+            altitudeFt: state.altitude,
+            groundSpeedKts: state.groundSpeed,
+            headingDeg: state.heading,
+            verticalSpeedFpm: state.verticalSpeed,
+            timestamp: sampleNow,
+          };
+
+          setTrajectory((prev) => (prev.length > 4000 ? [...prev.slice(1), pt] : [...prev, pt]));
+        }
 
         // Update metric records
         if (state.altitude > maxAltitudeRef.current) maxAltitudeRef.current = state.altitude;
@@ -713,6 +754,7 @@ export const FlightSimulator3D: React.FC<FlightSimulator3DProps> = ({
       physics.state = physics.getInitialState();
     }
     setTelemetry({ ...physics.state });
+    setTrajectory([]);
     setInstructorFeedback(lang === 'pt' ? 'Simulador reiniciado. Cheque pré-decolagem concluído.' : 'Simulator reset. Pre-flight check complete.');
     setInstructorFeedbackType('info');
     flightStartTimeRef.current = Date.now();
@@ -827,6 +869,8 @@ export const FlightSimulator3D: React.FC<FlightSimulator3DProps> = ({
               audioEngine.playClickSwitch();
             }
           }}
+          onToggleAtc={() => setIsAtcOpen((prev) => !prev)}
+          isAtcOpen={isAtcOpen}
         />
       )}
 
@@ -892,6 +936,36 @@ export const FlightSimulator3D: React.FC<FlightSimulator3DProps> = ({
           <span className="hidden sm:inline">VR</span>
         </button>
 
+        {/* ATC Radio & Comms Button */}
+        <button
+          id="btn-toggle-atc-radio"
+          onClick={() => setIsAtcOpen(!isAtcOpen)}
+          className={`px-3 py-2 rounded-xl text-xs font-mono-avionics font-bold flex items-center gap-1.5 cursor-pointer transition-all backdrop-blur-md ${
+            isAtcOpen
+              ? 'bg-[#1E293B] border border-[#22C55E] text-[#22C55E] shadow-lg shadow-[#22C55E]/10'
+              : 'bg-[#0F172A]/90 hover:bg-[#1E293B] border border-[#334155] text-[#94A3B8] hover:text-white'
+          }`}
+          title="ATC Radio Communications [C / T]"
+        >
+          <RadioTower className="h-4 w-4 text-[#22C55E]" />
+          <span className="hidden md:inline">{t.atcRadio || (lang === 'pt' ? 'ATC [C]' : 'ATC [C]')}</span>
+        </button>
+
+        {/* Flight Path & Moving Map Button */}
+        <button
+          id="btn-toggle-flight-path-map"
+          onClick={() => setIsMapOpen(!isMapOpen)}
+          className={`px-3 py-2 rounded-xl text-xs font-mono-avionics font-bold flex items-center gap-1.5 cursor-pointer transition-all backdrop-blur-md ${
+            isMapOpen
+              ? 'bg-[#1E293B] border border-[#38BDF8] text-[#38BDF8] shadow-lg shadow-[#38BDF8]/10'
+              : 'bg-[#0F172A]/90 hover:bg-[#1E293B] border border-[#334155] text-[#94A3B8] hover:text-white'
+          }`}
+          title="Flight Path & Terrain Map [M]"
+        >
+          <MapIcon className="h-4 w-4 text-[#38BDF8]" />
+          <span className="hidden md:inline">{t.flightPathMap || (lang === 'pt' ? 'Mapa [M]' : 'Map [M]')}</span>
+        </button>
+
         {/* Hardware Calibration */}
         <button
           id="btn-hardware-calib"
@@ -954,7 +1028,35 @@ export const FlightSimulator3D: React.FC<FlightSimulator3DProps> = ({
         </div>
       )}
 
-      {/* Modals */}
+      {/* Modals & Visualizers */}
+      {telemetry && (
+        <>
+          <FlightPathVisualizer
+            telemetry={telemetry}
+            aircraft={currentAircraft}
+            airport={currentAirport}
+            weather={currentWeather}
+            trajectory={trajectory}
+            lang={lang}
+            isOpen={isMapOpen}
+            isExpanded={isMapExpanded}
+            onToggleExpand={() => setIsMapExpanded(!isMapExpanded)}
+            onClose={() => setIsMapOpen(false)}
+            onClearTrajectory={() => setTrajectory([])}
+          />
+
+          <AtcRadioPanel
+            telemetry={telemetry}
+            aircraft={currentAircraft}
+            airport={currentAirport}
+            weather={currentWeather}
+            lang={lang}
+            isOpen={isAtcOpen}
+            onClose={() => setIsAtcOpen(false)}
+          />
+        </>
+      )}
+
       <HardwareCalibrationModal
         isOpen={isHardwareModalOpen}
         onClose={() => setIsHardwareModalOpen(false)}
