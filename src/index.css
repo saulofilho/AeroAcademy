@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #0A0C10;
+    color: #E2E8F0;
+  }
+  
+  .font-mono-avionics {
+    font-family: 'JetBrains Mono', monospace;
+  }
+  
+  .font-display {
+    font-family: 'Chakra Petch', 'Plus Jakarta Sans', sans-serif;
+  }
+
+  .font-serif-display {
+    font-family: Georgia, 'Times New Roman', serif;
+  }
+}
+
+/* Sophisticated Dark Theme Glass & HUD effects */
+.hud-glass {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid #1E293B;
+}
+
+.hud-glass-elevated {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid #334155;
+}
+
+.hud-glow-green {
+  text-shadow: 0 0 10px rgba(34, 197, 94, 0.7), 0 0 20px rgba(34, 197, 94, 0.3);
+}
+
+.hud-glow-cyan {
+  text-shadow: 0 0 10px rgba(56, 189, 248, 0.7), 0 0 20px rgba(56, 189, 248, 0.3);
+}
+
+.hud-glow-amber {
+  text-shadow: 0 0 10px rgba(252, 211, 77, 0.7), 0 0 20px rgba(252, 211, 77, 0.3);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0A0C10;
+}
+::-webkit-scrollbar-thumb {
+  background: #1E293B;
+  border-radius: 3px;
+  border: 1px solid #334155;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+

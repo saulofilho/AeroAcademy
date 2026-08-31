@@ -1,0 +1,6 @@
+{
+  "name": "AeroAcademy - Simulador de Voo & Formação Aeronáutica",
+  "description": "Plataforma completa de treinamento de voo com simulador 3D/VR integrado, instrutor de voo em tempo real com IA, lições teóricas, certificações oficiais, relatórios de telemetria pós-voo, hangar de aeronaves personalizável, banco de dados global de aeroportos e meteorologia dinâmica.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
