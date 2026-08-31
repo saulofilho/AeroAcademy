@@ -428,3 +428,104 @@ export interface AtcRadioState {
   clearedLand: boolean;
   lastWaypoint?: string;
 }
+
+export interface BlackBoxTelemetryFrame {
+  timeOffsetMs: number; // Milliseconds from flight session start
+  timestamp: number; // Unix epoch ms
+  altitudeFt: number;
+  altitudeAglFt: number;
+  indicatedAirspeedKts: number;
+  groundSpeedKts: number;
+  verticalSpeedFpm: number;
+  pitchDeg: number;
+  rollDeg: number;
+  headingDeg: number;
+  angleOfAttackDeg: number;
+  gForce: number;
+  slipSkid: number;
+  
+  // Pilot Control Inputs
+  throttlePct: number;
+  elevatorPitchInput: number; // -1 to 1
+  aileronRollInput: number; // -1 to 1
+  rudderYawInput: number; // -1 to 1
+  elevatorTrimPct: number;
+  flapsDeg: number;
+  gearDown: boolean;
+  wheelBrakes: boolean;
+  parkingBrakes: boolean;
+  
+  // Position
+  posX: number;
+  posY: number;
+  posZ: number;
+  lat: number;
+  lon: number;
+  
+  // Systems & ILS
+  engineRpm: number;
+  ilsLocalizerDev: number;
+  ilsGlideslopeDev: number;
+  dmeDistanceNm: number;
+  onGround: boolean;
+  stallWarning: boolean;
+  terrainWarning: boolean;
+}
+
+export interface BlackBoxFlightEvent {
+  id: string;
+  timeOffsetMs: number;
+  type: 'ENGINE_START' | 'TAKEOFF_ROLL' | 'ROTATION_LIFTOFF' | 'MAX_ALTITUDE' | 'MAX_SPEED' | 'MAX_G_FORCE' | 'STALL_WARNING' | 'GPWS_PULL_UP' | 'GLIDESLOPE_CAPTURE' | 'TOUCHDOWN' | 'GO_AROUND';
+  title: string;
+  description: string;
+  severity: 'info' | 'warning' | 'alert' | 'critical';
+  telemetrySnapshot: {
+    altitudeFt: number;
+    speedKts: number;
+    gForce: number;
+    verticalSpeedFpm: number;
+  };
+}
+
+export interface BlackBoxRecording {
+  id: string;
+  sessionStartTime: number;
+  sessionEndTime?: number;
+  durationMs: number;
+  sampleIntervalMs: number;
+  aircraft: {
+    id: string;
+    name: string;
+    registration: string;
+    category: string;
+    maxGrossWeightLbs: number;
+  };
+  airport: {
+    icao: string;
+    iata: string;
+    name: string;
+    elevationFt: number;
+    activeRunway: string;
+  };
+  weather: {
+    windDirectionDeg: number;
+    windSpeedKts: number;
+    qnhHpa: number;
+    temperatureC: number;
+    visibilityKm: number;
+    turbulence: string;
+  };
+  statistics: {
+    totalFrames: number;
+    maxAltitudeFt: number;
+    maxSpeedKts: number;
+    maxGForce: number;
+    minGForce: number;
+    landingRateFpm: number;
+    touchdownGForce: number;
+    distanceFlownNm: number;
+    stallWarningCount: number;
+  };
+  events: BlackBoxFlightEvent[];
+  frames: BlackBoxTelemetryFrame[];
+}

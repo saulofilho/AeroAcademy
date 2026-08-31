@@ -1,7 +1,7 @@
 import React from 'react';
 import { FlightTelemetry, AircraftSpecs, SupportedLanguage } from '../../types';
 import { translations } from '../../i18n/translations';
-import { Gauge, Compass, Activity, Navigation, Radio, AlertTriangle, ShieldCheck, Flame, Disc3 } from 'lucide-react';
+import { Gauge, Compass, Activity, Navigation, Radio, AlertTriangle, ShieldCheck, Flame, Disc3, HardDrive } from 'lucide-react';
 
 interface CockpitOverlayProps {
   telemetry: FlightTelemetry;
@@ -14,6 +14,8 @@ interface CockpitOverlayProps {
   onBrakesToggle: () => void;
   onToggleAtc?: () => void;
   isAtcOpen?: boolean;
+  onToggleBlackBox?: () => void;
+  isBlackBoxOpen?: boolean;
 }
 
 export const CockpitOverlay: React.FC<CockpitOverlayProps> = ({
@@ -27,6 +29,8 @@ export const CockpitOverlay: React.FC<CockpitOverlayProps> = ({
   onBrakesToggle,
   onToggleAtc,
   isAtcOpen,
+  onToggleBlackBox,
+  isBlackBoxOpen,
 }) => {
   const t = (translations[lang] || translations.pt).simulator;
 
@@ -92,7 +96,7 @@ export const CockpitOverlay: React.FC<CockpitOverlayProps> = ({
           )}
         </div>
 
-        {/* Right: G-Force & Fuel */}
+        {/* Right: G-Force, Fuel & FDR */}
         <div className="bg-[#0F172A]/90 backdrop-blur-md border border-[#334155] rounded-xl px-4 py-2 flex items-center gap-4 text-xs font-mono-avionics text-[#94A3B8] shadow-lg">
           <div className="flex items-center gap-1.5">
             <Activity className="h-3.5 w-3.5 text-[#38BDF8]" />
@@ -106,6 +110,23 @@ export const CockpitOverlay: React.FC<CockpitOverlayProps> = ({
             <span>FUEL:</span>
             <strong className="text-white">{telemetry.fuelPercent}%</strong>
           </div>
+          {onToggleBlackBox && (
+            <div className="border-l border-[#334155] pl-3">
+              <button
+                id="btn-overlay-fdr-toggle"
+                onClick={onToggleBlackBox}
+                className={`flex items-center gap-1.5 px-2 py-0.5 rounded border cursor-pointer transition-all ${
+                  isBlackBoxOpen
+                    ? 'bg-amber-950/80 border-amber-500 text-amber-300 shadow'
+                    : 'bg-[#0A0C10] border-[#334155] text-[#94A3B8] hover:text-amber-400'
+                }`}
+                title="Open Black Box FDR & Flight Data Analysis [X]"
+              >
+                <HardDrive className="h-3 w-3 text-amber-400" />
+                <span className="text-[10px] font-bold">FDR [X]</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

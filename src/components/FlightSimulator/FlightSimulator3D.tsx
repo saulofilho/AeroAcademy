@@ -14,11 +14,13 @@ import {
 } from '../../types';
 import { FlightPhysicsEngine } from '../../services/flightPhysics';
 import { audioEngine } from '../../services/audioEffects';
+import { blackBoxRecorder } from '../../services/blackBoxRecorder';
 import { CockpitOverlay } from './CockpitOverlay';
 import { HardwareCalibrationModal } from './HardwareCalibrationModal';
 import { PostFlightDebriefModal } from './PostFlightDebriefModal';
 import { FlightPathVisualizer } from './FlightPathVisualizer';
 import { AtcRadioPanel } from './AtcRadioPanel';
+import { BlackBoxAnalysisModal } from './BlackBoxAnalysisModal';
 import { translations } from '../../i18n/translations';
 import {
   Play,
@@ -30,6 +32,7 @@ import {
   Flag,
   Radio,
   RadioTower,
+  HardDrive,
   Volume2,
   VolumeX,
   Sparkles,
@@ -79,6 +82,7 @@ export const FlightSimulator3D: React.FC<FlightSimulator3DProps> = ({
   const [isMapOpen, setIsMapOpen] = useState<boolean>(true);
   const [isMapExpanded, setIsMapExpanded] = useState<boolean>(false);
   const [isAtcOpen, setIsAtcOpen] = useState<boolean>(true);
+  const [isBlackBoxOpen, setIsBlackBoxOpen] = useState<boolean>(false);
   const lastSampleTimeRef = useRef<number>(0);
 
   // Flight session metrics
@@ -421,6 +425,9 @@ export const FlightSimulator3D: React.FC<FlightSimulator3DProps> = ({
 
     window.addEventListener('resize', handleResize);
 
+    // Initialize High-Frequency Black Box Flight Data Recorder Session
+    blackBoxRecorder.startNewSession(currentAircraft, currentAirport, currentWeather, 10);
+
     return () => {
       window.removeEventListener('resize', handleResize);
       renderer.dispose();
@@ -459,6 +466,9 @@ export const FlightSimulator3D: React.FC<FlightSimulator3DProps> = ({
       } else if (e.code === 'KeyC' || e.code === 'KeyT') {
         // Toggle ATC Radio Comms
         setIsAtcOpen((prev) => !prev);
+      } else if (e.code === 'KeyX') {
+        // Toggle Black Box Flight Data Recorder & Analysis
+        setIsBlackBoxOpen((prev) => !prev);
       } else if (e.code === 'KeyV') {
         // Cycle Camera / VR mode
         setViewMode((prev) => (prev === 'cockpit_hud' ? 'chaseView' : prev === 'chaseView' ? 'vr_stereoscopic' : 'cockpit_hud'));
@@ -553,6 +563,9 @@ export const FlightSimulator3D: React.FC<FlightSimulator3DProps> = ({
         // Update telemetry state
         const state = physics.state;
         setTelemetry({ ...state });
+
+        // Record high-frequency telemetry in the Black Box FDR service (10 Hz)
+        blackBoxRecorder.recordTelemetry(state, currentAircraft, currentAirport, currentWeather);
 
         // Sample flight trajectory point for real-time moving map
         const sampleNow = Date.now();
@@ -871,6 +884,8 @@ export const FlightSimulator3D: React.FC<FlightSimulator3DProps> = ({
           }}
           onToggleAtc={() => setIsAtcOpen((prev) => !prev)}
           isAtcOpen={isAtcOpen}
+          onToggleBlackBox={() => setIsBlackBoxOpen((prev) => !prev)}
+          isBlackBoxOpen={isBlackBoxOpen}
         />
       )}
 
@@ -966,6 +981,21 @@ export const FlightSimulator3D: React.FC<FlightSimulator3DProps> = ({
           <span className="hidden md:inline">{t.flightPathMap || (lang === 'pt' ? 'Mapa [M]' : 'Map [M]')}</span>
         </button>
 
+        {/* Black Box FDR & Telemetry Analysis Button */}
+        <button
+          id="btn-toggle-black-box"
+          onClick={() => setIsBlackBoxOpen(!isBlackBoxOpen)}
+          className={`px-3 py-2 rounded-xl text-xs font-mono-avionics font-bold flex items-center gap-1.5 cursor-pointer transition-all backdrop-blur-md ${
+            isBlackBoxOpen
+              ? 'bg-amber-950/80 border border-amber-500 text-amber-300 shadow-lg shadow-amber-500/20'
+              : 'bg-[#0F172A]/90 hover:bg-[#1E293B] border border-[#334155] text-[#94A3B8] hover:text-amber-400'
+          }`}
+          title="Black Box Flight Data Recorder & Analysis [X]"
+        >
+          <HardDrive className="h-4 w-4 text-amber-400" />
+          <span className="hidden md:inline">{lang === 'pt' ? 'Caixa Preta [X]' : 'Black Box [X]'}</span>
+        </button>
+
         {/* Hardware Calibration */}
         <button
           id="btn-hardware-calib"
@@ -1054,6 +1084,12 @@ export const FlightSimulator3D: React.FC<FlightSimulator3DProps> = ({
             isOpen={isAtcOpen}
             onClose={() => setIsAtcOpen(false)}
           />
+
+          <BlackBoxAnalysisModal
+            isOpen={isBlackBoxOpen}
+            onClose={() => setIsBlackBoxOpen(false)}
+            lang={lang}
+          />
         </>
       )}
 
@@ -1073,6 +1109,7 @@ export const FlightSimulator3D: React.FC<FlightSimulator3DProps> = ({
           entry={lastCompletedEntry}
           onShare={() => onOpenShareModal(lastCompletedEntry)}
           onGoToLogbook={() => onNavigateTab('logbook')}
+          onOpenBlackBox={() => setIsBlackBoxOpen(true)}
         />
       )}
     </div>

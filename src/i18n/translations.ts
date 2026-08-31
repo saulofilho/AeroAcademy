@@ -40,6 +40,7 @@ export const translations = {
       hardwareConnect: "Calibrar Joystick / Hardware",
       flightPathMap: "Mapa de Trajetória & Terreno",
       atcRadio: "Controle ATC & Rádio [C]",
+      blackBox: "Caixa Preta & Gravador FDR [X]",
       stallWarning: "ALARME DE ESTOL!",
       pullUpWarning: "PULL UP - TERRENO!",
       touchdownRating: "Qualidade do Toque",
@@ -50,7 +51,7 @@ export const translations = {
       degrees: "graus",
       objectiveProgress: "Progresso da Manobra",
       pressSpaceForBrakes: "Barra de espaço para freios",
-      keysHelp: "Teclas: W/S Cabrar/Picar • A/D Rolar • Q/E Leme • Shift/Ctrl Potência • F Flaps • G Trem • B Freios • C Rádio ATC • M Mapa • V Câmera/VR",
+      keysHelp: "Teclas: W/S Cabrar/Picar • A/D Rolar • Q/E Leme • Shift/Ctrl Potência • F Flaps • G Trem • B Freios • C Rádio ATC • M Mapa • X Caixa Preta • V Câmera/VR",
     },
     theory: {
       title: "Instrução Teórica de Solo",
@@ -213,6 +214,7 @@ export const translations = {
       hardwareConnect: "Calibrate Joystick / Hardware",
       flightPathMap: "Flight Path & Terrain Map",
       atcRadio: "ATC Radio & Comms [C]",
+      blackBox: "Black Box FDR & Telemetry [X]",
       stallWarning: "STALL WARNING!",
       pullUpWarning: "PULL UP - TERRAIN!",
       touchdownRating: "Touchdown Quality",
@@ -223,7 +225,7 @@ export const translations = {
       degrees: "deg",
       objectiveProgress: "Maneuver Objectives",
       pressSpaceForBrakes: "Spacebar for brakes",
-      keysHelp: "Keys: W/S Pitch • A/D Roll • Q/E Rudder • Shift/Ctrl Throttle • F Flaps • G Gear • B Brakes • C ATC Radio • M Map • V Camera/VR",
+      keysHelp: "Keys: W/S Pitch • A/D Roll • Q/E Rudder • Shift/Ctrl Throttle • F Flaps • G Gear • B Brakes • C ATC Radio • M Map • X Black Box • V Camera/VR",
     },
     theory: {
       title: "Aviation Ground School",

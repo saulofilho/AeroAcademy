@@ -1,7 +1,7 @@
 import React from 'react';
 import { LogbookEntry, SupportedLanguage } from '../../types';
 import { translations } from '../../i18n/translations';
-import { Award, CheckCircle, Share2, ArrowRight, Activity, PlaneLanding, Flame, Compass, Sparkles } from 'lucide-react';
+import { Award, CheckCircle, Share2, ArrowRight, Activity, PlaneLanding, Flame, Compass, Sparkles, HardDrive } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface PostFlightDebriefModalProps {
@@ -11,6 +11,7 @@ interface PostFlightDebriefModalProps {
   entry: LogbookEntry;
   onShare: () => void;
   onGoToLogbook: () => void;
+  onOpenBlackBox?: () => void;
 }
 
 export const PostFlightDebriefModal: React.FC<PostFlightDebriefModalProps> = ({
@@ -20,6 +21,7 @@ export const PostFlightDebriefModal: React.FC<PostFlightDebriefModalProps> = ({
   entry,
   onShare,
   onGoToLogbook,
+  onOpenBlackBox,
 }) => {
   React.useEffect(() => {
     if (isOpen && entry.flightScore >= 85) {
@@ -122,13 +124,25 @@ export const PostFlightDebriefModal: React.FC<PostFlightDebriefModalProps> = ({
 
         {/* Modal Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-[#1E293B]">
-          <button
-            onClick={onShare}
-            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#1E293B] hover:bg-[#334155] border border-[#334155] text-[#E2E8F0] text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-colors"
-          >
-            <Share2 className="h-4 w-4 text-[#38BDF8]" />
-            {lang === 'pt' ? 'Compartilhar Resultado' : 'Share Result'}
-          </button>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              onClick={onShare}
+              className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-[#1E293B] hover:bg-[#334155] border border-[#334155] text-[#E2E8F0] text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-colors"
+            >
+              <Share2 className="h-4 w-4 text-[#38BDF8]" />
+              {lang === 'pt' ? 'Compartilhar' : 'Share'}
+            </button>
+            {onOpenBlackBox && (
+              <button
+                id="btn-debrief-open-blackbox"
+                onClick={onOpenBlackBox}
+                className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-amber-950/80 hover:bg-amber-900 border border-amber-500/50 text-amber-300 text-xs font-semibold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md shadow-amber-950/30"
+              >
+                <HardDrive className="h-4 w-4 text-amber-400" />
+                {lang === 'pt' ? 'Caixa Preta (FDR)' : 'Black Box FDR'}
+              </button>
+            )}
+          </div>
           
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
@@ -144,7 +158,7 @@ export const PostFlightDebriefModal: React.FC<PostFlightDebriefModalProps> = ({
               }}
               className="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl bg-[#38BDF8] hover:bg-[#0284C7] text-[#0A0C10] text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-[#38BDF8]/15 cursor-pointer transition-all"
             >
-              <span>{lang === 'pt' ? 'Ver Caderneta de Voo' : 'View Logbook'}</span>
+              <span>{lang === 'pt' ? 'Ver Caderneta' : 'Logbook'}</span>
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
