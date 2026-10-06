@@ -83,8 +83,8 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
           onClick={() => onSelectTab('simulator')}
           className="flex items-center gap-3 cursor-pointer group shrink-0"
         >
-          <div className="w-10 h-10 bg-[#38BDF8] rounded-xl flex items-center justify-center text-[#0A0C10] font-bold text-xl shadow-md shadow-[#38BDF8]/10 group-hover:scale-105 transition-transform font-serif-display">
-            A
+          <div className="w-10 h-10 rounded-xl overflow-hidden shadow-md shadow-[#38BDF8]/20 group-hover:scale-105 transition-transform border border-[#38BDF8]/30 flex items-center justify-center bg-[#0B132B]">
+            <img src="/icon.svg" alt="AeroAcademy Logo" className="w-full h-full object-cover" />
           </div>
           <div className="border-l border-[#334155] pl-3.5">
             <div className="flex items-center gap-2">
